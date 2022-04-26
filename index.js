@@ -1,12 +1,32 @@
 import express from 'express';
 import multer from 'multer';
+import path from 'path';
 
 // File Upload Folder
 const UPLOADS_FOLDER = './uploads/';
 
+// define multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_FOLDER);
+  },
+  filename: (req, file, cb) => {
+    const fileExt = path.extname(file.originalname);
+    const fileName =
+      file.originalname
+        .replace(fileExt, '')
+        .toLowerCase()
+        .split(' ')
+        .join('-') +
+      '-' +
+      Date.now();
+    cb(null, fileName + fileExt);
+  },
+});
+
 // Multer file upload object
 const upload = multer({
-  dest: UPLOADS_FOLDER,
+  storage,
   limits: {
     fileSize: 1000000,
   },
@@ -33,7 +53,7 @@ const app = express();
 
 app.post(
   '/',
-  upload.single([
+  upload.fields([
     { name: 'avatar', maxCount: 1 },
     { name: 'doc', maxCount: 1 },
   ]),
